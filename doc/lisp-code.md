@@ -192,8 +192,25 @@ end of load success
 ```
 
 Où chaque input a 4 composantes : X1 X2 X1.X2 et 1.0 (biais constant)
-Output value : 	(w1 w2 w3 bias epoque) (dernier output)
 
+Et output value : 	(w1 w2 w3 bias epoque) (dernier output)
+
+On peut rejoer avec d'autres poids au départ, même réponse :
+
+```
+[ poids initiaux nuls, taux 1.0, 100 epoques au plus ]
+[ affiche ((poids epoques) sorties) ]
+let r (train '(0.1 -0.1112 0.00987 -0.00001) xor 1.0 100 0)
+   cons r cons (outputs car r xor) nil
+
+expression  ((' (lambda (r) (cons r (cons (outputs (car r) xor
+            ) nil)))) (train (' (0.1 -0.1112 0.00987 -1e-05)) 
+            xor 1.0 100 0))
+value       (((0.1 0.8888 -1.99013 -1e-05) 6) (0.0 1.0 1.0 0.0
+            ))
+```
+
+Reste à voir sensibilité au bruit dans inputs
 
 ```
 [TODO: paste training trace / final weights]
