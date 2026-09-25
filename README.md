@@ -35,7 +35,7 @@ load float-test.l
 ## Status
 
 - [x] `load` and floating-point extension (tested on iPhone 5s)
-- [ ] perceptron (`examples/perceptron.l`, port in progress)
+- [x] perceptron (`examples/perceptron.l`, port in progress)
 - [ ] SOM (`examples/som.l`, draft, tested on Linux only)
 - [ ] perceptron → WAV playback
 
