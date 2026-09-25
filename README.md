@@ -1,7 +1,7 @@
-# neuromuse-ios — Chaitin's Lisp on a iPhone 5s
+# neuromuse-ios — neuromuse sur iOS (expérimental)
 
 Experimentation d'idées développées dans [neuromuse](https://github.com/FredVoisin/neuromuse)
-avec un Lisp maison natif iPhone 5s (checkra1n, arm64).
+avec un Lisp maison natif sur iPhone 5s.
 
 L'interpréteur est fondé sur le **`lisp.c` de Gregory J. Chaitin**, non inclu ici.
 Ce dépôt contient seulement les modifications de l'interpréteur et les exemples:
