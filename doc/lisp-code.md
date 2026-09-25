@@ -177,7 +177,7 @@ value       (((0.0 0.0 0.0 1.0) 0.0) ((0.0 1.0 0.0 1.0) 1.0) (
             (1.0 0.0 0.0 1.0) 1.0) ((1.0 1.0 1.0 1.0) 0.0))
 
 
-[ poids initiaux nuls, taux 1.0, 100 epoques au plus ]
+[ poids initiaux NULS, taux 1.0, 100 epoques au plus ]
 [ affiche ((poids epoques) sorties) ]
 let r (train '(0.0 0.0 0.0 0.0) xor 1.0 100 0)
    cons r cons (outputs car r xor) nil
@@ -198,7 +198,7 @@ Et output value : 	(w1 w2 w3 bias epoque) (dernier output)
 On peut rejoer avec d'autres poids au départ, même réponse :
 
 ```
-[ poids initiaux nuls, taux 1.0, 100 epoques au plus ]
+[ poids initiaux aléatoires, taux 1.0, 100 epoques au plus ]
 [ affiche ((poids epoques) sorties) ]
 let r (train '(0.1 -0.1112 0.00987 -0.00001) xor 1.0 100 0)
    cons r cons (outputs car r xor) nil
@@ -211,6 +211,8 @@ value       (((0.1 0.8888 -1.99013 -1e-05) 6) (0.0 1.0 1.0 0.0
 ```
 
 Reste à voir sensibilité au bruit dans inputs
+
+(en cours)
 
 ```
 [TODO: paste training trace / final weights]
