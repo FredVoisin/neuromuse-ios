@@ -1,17 +1,15 @@
-# neuromuse-ios — Chaitin's Lisp on a jailbroken iPhone 5s
+# neuromuse-ios — Chaitin's Lisp on a iPhone 5s
 
-Experimental port of [neuromuse](https://github.com/FredVoisin/neuromuse)
-ideas (perceptron, SOM) to a minimal Lisp running natively on an iPhone 5s
-(checkra1n, arm64).
+Experimentations des idées développées dans [neuromuse](https://github.com/FredVoisin/neuromuse)
+avec Lisp natif iPhone 5s (checkra1n, arm64).
 
-The interpreter is **`lisp.c` by Gregory J. Chaitin**. The original code is
-not included here; this repository only contains the neuromuse modifications
-and examples:
+L'interpreteurr est le **`lisp.c` de Gregory J. Chaitin**, non inclu ici.
+Ce dépôt contient seulement les modifications de l'interpréteur et et les exemples:
 
-- `chaitin-lisp/neuromuse.patch` — adds `load` and floating-point numbers
-  (`/ exp log sqrt floor float random seed`) to Chaitin's `lisp.c`
-- `chaitin-lisp/Makefile` — applies the patch and builds with the Theos SDK
-- `examples/*.l` — programs in Chaitin's Lisp (`.l`, not Common Lisp)
+- `chaitin-lisp/neuromuse.patch` — avec `load` et nombres décimaux
+  (`/ exp log sqrt floor float random seed`) nécessaires ajoutées à `lisp.c`
+- `chaitin-lisp/Makefile` — applique le patch et compile avec le SDK Theos
+- `examples/*.l` — exemple dans le dialecte Lisp de Chaitin (`.l`, not Common Lisp)
 
 ## Build
 
