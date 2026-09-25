@@ -1,5 +1,9 @@
 # neuromuse-ios — neuromuse sur iOS (expérimental)
 
+<div align="center">
+  <img src="img/neuromuse-iphone5.png" alt="iPhone 5s running perceptron.l" width="350">
+</div>
+
 Experimentation d'idées développées dans [neuromuse](https://github.com/FredVoisin/neuromuse)
 avec un Lisp maison natif sur iPhone 5s.
 
@@ -38,8 +42,6 @@ load float-test.l
 - [x] perceptron (`examples/perceptron.l`, port in progress)
 - [ ] SOM (`examples/som.l`, draft, tested on Linux only)
 - [ ] perceptron → WAV playback
-
-<img src="img/neuromuse-iphone5.png" alt="iPhone 5s" width="400">
 
 ## License
 
