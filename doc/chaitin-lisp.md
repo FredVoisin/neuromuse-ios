@@ -1,4 +1,4 @@
-# Lisp interpreter on iPhone 5s (jailbroken)
+# Lisp interpreter on iPhone 5s
 
 **Original interpreter**: Gregory J. Chaitin
 **Status**: experimental proof of concept
@@ -52,66 +52,8 @@ The version used here is a **modified `lisp.c`** — see
 | Item       | Value                                  |
 |------------|----------------------------------------|
 | Device     | Apple iPhone 5s (`iPhone6,2`, N53AP, arm64) |
-| Jailbreak  | checkra1n                              |
 | iOS        | 12.5.x (Darwin 18.7.0, xnu-4903.272.5) |
 | Toolchain  | Theos, iPhoneOS16.5 SDK, clang, ldid   |
-
----
-
-## Build: two approaches
-
-### 1. On-device system headers (abandoned)
-
-The headers shipped by the `iphoneos-sys` package (`/var/include`) are broken
-for arm64: missing `__arm64__` branches in `cdefs.h`, `machine/_types.h`,
-`signal.h`, `_structs.h`, `endian.h` and `types.h`. Patching them by hand made
-the build work, but the result was fragile and hard to reproduce.
-
-### 2. Theos SDK (adopted)
-
-```sh
-clang -isysroot $THEOS/sdks/iPhoneOS16.5.sdk -arch arm64 -o lisp lisp.c
-```
-
-Much more reliable for plain C code. With the original `Makefile` (plain
-`cc`), set the SDK through the environment instead:
-
-```sh
-export SDKROOT=$THEOS/sdks/iPhoneOS16.5.sdk
-make
-```
-
----
-
-## Problems solved
-
-- **`libSystem.dylib`**: a broken symbolic link on modern iOS; linking
-  against the Theos SDK avoids it.
-- **Code signing**: in the first attempts, an ad-hoc signature (`ldid -S`)
-  was not enough and the binary needed entitlements such as `get-task-allow`
-  and `run-unsigned-code`. With the SDK build run from `~/dev`, the ad-hoc
-  signature applied by the linker turned out to be sufficient. Entitlements,
-  if needed:
-
-  ```xml
-  <?xml version="1.0" encoding="UTF-8"?>
-  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-  <plist version="1.0">
-  <dict>
-      <key>get-task-allow</key>
-      <true/>
-      <key>run-unsigned-code</key>
-      <true/>
-  </dict>
-  </plist>
-  ```
-
-  ```sh
-  ldid -Sentitlements.plist lisp
-  ```
-
-- **Sandbox**: execution was refused from a non-standard directory; the
-  binary runs from the user home, e.g. `~/dev/chaitin_lisp-master/src`.
 
 ---
 
@@ -160,15 +102,6 @@ Chaitin's arbitrary-precision integers are unchanged. Tested with
   (<https://en.wikipedia.org/wiki/Perceptron>): converges in about 30 epochs.
 
 Code: see [lisp-code.md](lisp-code.md).
-
----
-
-## Next steps
-
-- [x] `load` and floating-point extension
-- [ ] Perceptron → WAV playback (via script, if possible)
-- [ ] Demo code (to come)
-- [ ] Audio (later)
 
 ---
 
