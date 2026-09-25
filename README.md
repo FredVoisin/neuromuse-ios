@@ -39,7 +39,7 @@ load float-test.l
 - [ ] SOM (`examples/som.l`, draft, tested on Linux only)
 - [ ] perceptron → WAV playback
 
-![iPhone 5s running perceptron.l](img/neuromuse-iphone5.png)
+<img src="img/neuromuse-iphone5.png" alt="iPhone 5s" width="400">
 
 ## License
 

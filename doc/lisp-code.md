@@ -66,7 +66,6 @@ iPhone:~/dev/neuromuse mobile$ lisp
 LISP Interpreter Run
 
 load perceptron.l             
-load perceptron.l
 
 load        perceptron.l
 
@@ -192,7 +191,9 @@ value       (((1.0 1.0 -3.0 0.0) 7) (0.0 1.0 1.0 0.0))
 end of load success
 ```
 
-Output:
+Où chaque input a 4 composantes : X1 X2 X1.X2 et 1.0 (biais constant)
+Output value : 	(w1 w2 w3 bias epoque) (dernier output)
+
 
 ```
 [TODO: paste training trace / final weights]
