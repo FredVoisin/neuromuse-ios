@@ -1,0 +1,361 @@
+--- a/lisp.c	2026-09-24 16:21:34.487262959 +0000
++++ b/lisp.c	2026-09-25 10:17:33.680608525 +0000
+@@ -1,6 +1,14 @@
+ /* lisp.c: high-speed LISP interpreter */
+  
+ /*
++   Original code: Gregory J. Chaitin.
++   Modified for neuromuse (https://github.com/FredVoisin/neuromuse):
++   load primitive, floating-point numbers (/ exp log sqrt floor float
++   random seed), and fixes for compiler warnings.
++   See neuromuse.patch for the exact changes to Chaitin's code.
++*/
++ 
++/*
+    The storage required by this interpreter is 8 * 4 = 32 bytes times
+    the symbolic constant SIZE, which is 32 * 1,000,000 =
+    32 megabytes.  To run this interpreter in small machines,
+@@ -23,6 +31,8 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <time.h>
++#include <string.h>
++#include <math.h>
+  
+ #define SIZE 1000000 /* numbers of nodes of tree storage */
+ #define nil 0 /* end of list marker */
+@@ -36,6 +46,9 @@
+ /* The following is only used for atoms that are the names of primitive functions */
+ short pf_numb[SIZE]; /* primitive function number (for interpreter switch) */
+ short pf_args[SIZE]; /* number of arguments + 1 (for input parser) */
++/* floating-point extension (neuromuse) */
++short flo[SIZE]; /* is it a floating-point number? */
++double fval[SIZE]; /* value of floating-point number */
+  
+ long obj_lst; /* list of all atoms (& every other token read except numbers) */
+  
+@@ -45,6 +58,13 @@
+ long wrd_no_time_limit, wrd_out_of_time, wrd_out_of_data, wrd_success, wrd_failure;
+ long left_bracket, right_bracket, left_paren, right_paren, double_quote;
+ long wrd_zero, wrd_one;
++long wrd_load; /* load file-name : read input from a file (top level only) */
++
++#define MAX_LOAD 16 /* maximum nesting of load */
++FILE *input; /* current input stream (stdin or a loaded file) */
++FILE *input_stack[MAX_LOAD]; /* streams suspended by load */
++long input_depth = 0; /* number of nested loads in progress */
++void load_file(long name); /* start reading input from a file */
+  
+ long next = 0; /* next free node */
+ long col = 0; /* column in each 50 character chunk of output
+@@ -104,12 +124,20 @@
+ long read_char(void); /* read one character from Turing machine tape */
+ long read_word(void); /* read word from Turing machine tape */
+ long read_expr(long rparenokay); /* read s-exp from Turing machine tape */
++/* floating-point extension (neuromuse) */
++long mk_flo(double v); /* make a floating-point number */
++long float_word(long x); /* float atom if list of characters is a float literal, else 0 */
++double dval(long x); /* value of number (integer or float) as a double */
++void flo_str(long x, char *buf); /* print representation of a float */
++long mk_int(double v); /* make integer atom from nonnegative double */
+  
+ int main() /* lisp main program */
+ {
+ time1 = time(NULL); /* start timer */
+ printf("LISP Interpreter Run\n");
+ initialize_atoms();
++input = stdin;
++srandom((unsigned) time1);
+  
+ while (1) {
+       long e, f, name, def;
+@@ -117,9 +145,16 @@
+       /* read lisp meta-expression, ) not okay */
+       e = in(1,0);
+       printf("\n");
++      /* also accept (load file-name) with explicit parentheses */
++      if (!atom[e] && !atom[car[e]] && car[car[e]] == wrd_load && cdr[e] == nil)
++         e = car[e];
+       f = car[e];
+       name = car[cdr[e]];
+       def = car[cdr[cdr[e]]];
++      if (f == wrd_load) { /* load file-name */
++         load_file(name);
++         continue;
++      }
+       if (f == wrd_define) {
+       /* definition */
+          if (atom[name]) {
+@@ -190,8 +225,18 @@
+  i = mk_atom(21,"read-bit",1);
+  i = mk_atom(22,"bits",2);
+  i = mk_atom(23,"read-exp",1);
++ /* floating-point extension (neuromuse) */
++ i = mk_atom(24,"/",3);
++ i = mk_atom(25,"exp",2);
++ i = mk_atom(26,"log",2);
++ i = mk_atom(27,"sqrt",2);
++ i = mk_atom(28,"random",1);
++ i = mk_atom(29,"seed",2);
++ i = mk_atom(30,"floor",2);
++ i = mk_atom(31,"float",2);
+  wrd_eval = mk_atom(0,"eval",2);
+  wrd_try = mk_atom(0,"try",4);
++ wrd_load = mk_atom(0,"load",2);
+  left_bracket = mk_atom(0,"[",0);
+  right_bracket = mk_atom(0,"]",0);
+  left_paren = mk_atom(0,"(",0);
+@@ -263,6 +308,7 @@
+  pf_numb[z] = 0;
+  pf_args[z] = 0;
+  vlst[z] = 0;
++ flo[z] = 0;
+  
+  return z;
+ }
+@@ -280,6 +326,7 @@
+ void out_lst(long x) /* output list */
+ {
+    if (numb[x] && pname[x] == nil) {out_chr('0'); return;} /* null list of digits means zero */
++   if (flo[x]) {char buf[64], *p = buf; flo_str(x,buf); while (*p) out_chr(*p++); return;}
+    if (atom[x]) {out_atm(pname[x]); return;}
+    out_chr('(');
+    while (!atom[x]) {
+@@ -331,7 +378,15 @@
+    while ( buffer == nil ) { /* read in a line */
+       line = end_of_line = cons(nil,nil); /* stub */
+       do { /* read characters until '\n' */
+-         character = getchar();
++         character = getc(input);
++         if (character == EOF && input_depth > 0) {
++            /* end of loaded file: go back to previous input */
++            fclose(input);
++            input = input_stack[--input_depth];
++            printf("\n");
++            out("end of load",wrd_success);
++            character = '\n'; /* terminate current line */
++         }
+          if (character == EOF) {
+             time2 = time(NULL);
+             printf(
+@@ -382,11 +437,43 @@
+    /* first check if word consists only of digits */
+    if (only_digits(word)) word = mk_numb(remove_leading_zeros(word));
+    /* also makes 00099 into 99 and 0000 into null */
++   else if (float_word(word)) word = mk_flo(fval[0]); /* e.g. 0.5 -3 1e-3 */
+    else word = lookup_word(word); /* look up word in object list */
+    /* also does mk_atom and adds it to object list if necessary */
+    return word;
+ }
+  
++void load_file(long name) /* start reading input from a file */
++{
++   char path[1024];
++   long p, n = 0;
++   FILE *f;
++   if (!atom[name] || numb[name]) {
++      printf("load: file name expected\n");
++      return;
++   }
++   /* print name is a list of characters in reverse order */
++   for (p = pname[name]; p != nil; p = cdr[p]) n++;
++   if (n == 0 || n >= (long) sizeof(path)) {
++      printf("load: bad file name\n");
++      return;
++   }
++   path[n] = '\0';
++   for (p = pname[name]; p != nil; p = cdr[p]) path[--n] = (char) car[p];
++   if (input_depth >= MAX_LOAD) {
++      printf("load: too many nested loads\n");
++      return;
++   }
++   f = fopen(path,"r");
++   if (f == NULL) {
++      printf("load: cannot open %s\n",path);
++      return;
++   }
++   out("load",name);
++   input_stack[input_depth++] = input;
++   input = f;
++}
++
+ long only_digits(long x) /* check if list of characters are exclusively digits */
+ {
+    while (x != nil) {
+@@ -410,7 +497,7 @@
+ long in(long mexp, long rparenokay) /* input m-exp */
+ {
+    long w = in_word(), first, last, next, name, def, body, var_lst, i ;
+-   if (w == right_paren) if (rparenokay) return w; else return nil;
++   if (w == right_paren) { if (rparenokay) return w; else return nil; }
+    if (w == left_paren) { /* explicit list */
+       first = last = cons(nil,nil);
+       while ((next = in(mexp,1)) != right_paren)
+@@ -487,7 +574,7 @@
+ */
+  long f, v, args, x, y, z, vars, body, var;
+  
+- if (numb[e]) return e;
++ if (numb[e] || flo[e]) return e;
+  /* find current binding of atomic expression */
+  if (atom[e]) return car[vlst[e]];
+  
+@@ -512,7 +599,31 @@
+  y = car[cdr[args]]; /* pick up second argument */
+  z = car[cdr[cdr[args]]]; /* pick up third argument */
+  
++ /* floating-point extension (neuromuse) */
++ if (pf_numb[f] >= 10 && pf_numb[f] <= 17 && (flo[x] || flo[y])) {
++    double a = dval(x), b = dval(y);
++    switch (pf_numb[f]) {
++    case 10: return (a <  b ? wrd_true : wrd_false);
++    case 11: return (a >  b ? wrd_true : wrd_false);
++    case 12: return (a <= b ? wrd_true : wrd_false);
++    case 13: return (a >= b ? wrd_true : wrd_false);
++    case 14: return mk_flo(a + b);
++    case 15: return mk_flo(a * b);
++    case 16: return mk_flo(pow(a,b));
++    case 17: return mk_flo(a - b);
++    }
++ }
+  switch (pf_numb[f]) {
++ case 24: return mk_flo(dval(x) / dval(y));
++ case 25: return mk_flo(exp(dval(x)));
++ case 26: return mk_flo(log(dval(x)));
++ case 27: return mk_flo(sqrt(dval(x)));
++ case 28: return mk_flo(random() / 2147483648.0); /* uniform in [0,1) */
++ case 29: srandom((unsigned) dval(x)); return x;
++ case 30: {double v = floor(dval(x));
++           if (v >= 0 && v < 1e15) return mk_int(v);
++           return mk_flo(v);}
++ case 31: return mk_flo(dval(x));
+  case 1: return car[x];
+  case 2: return cdr[x];
+  case 3: return cons(x,y);
+@@ -658,6 +769,9 @@
+ long eq(long x, long y) /* equal predicate */
+ {
+  if (x == y) return 1;
++ if ((flo[x] || flo[y]) && (flo[x] || numb[x]) && (flo[y] || numb[y]))
++    return dval(x) == dval(y);
++ if (flo[x] || flo[y]) return 0;
+  if (numb[x] && numb[y]) return eq_wrd(pname[x],pname[y]);
+  if (numb[x] || numb[y]) return 0;
+  if (atom[x] || atom[y]) return 0;
+@@ -684,6 +798,7 @@
+  if (digit1 == digit2) return '=';
+  if (digit1 <  digit2) return '<';
+  if (digit1 >  digit2) return '>';
++ return '='; /* not reached */
+ }
+  
+ long add1(long x) /* add 1 to decimal number */
+@@ -812,6 +927,9 @@
+ {
+    long sum = nil;
+    if (numb[x] && pname[x] == nil) return add1(nil); /* number zero */
++   if (flo[x]) {char buf[64]; long n; flo_str(x,buf);
++                for (n = strlen(buf); n > 0; n--) sum = add1(sum);
++                return sum;}
+    if (atom[x]) return length(pname[x]);
+    while (!atom[x]) {
+       sum = addition(sum,size(car[x]),0);
+@@ -847,6 +965,7 @@
+ void write_lst(long x) /* convert s-exp to list of bits */
+ {
+    if (numb[x] && pname[x] == nil) {write_chr('0'); return;} /* null list of digits means zero */
++   if (flo[x]) {char buf[64], *p = buf; flo_str(x,buf); while (*p) write_chr(*p++); return;}
+    if (atom[x]) {write_atm(pname[x]); return;}
+    write_chr('(');
+    while (!atom[x]) {
+@@ -929,6 +1048,7 @@
+    /* first check if word consists only of digits */
+    if (only_digits(word)) word = mk_numb(remove_leading_zeros(word));
+    /* also makes 00099 into 99 and 0000 into null */
++   else if (float_word(word)) word = mk_flo(fval[0]); /* e.g. 0.5 -3 1e-3 */
+    else word = lookup_word(word); /* look up word in object list */
+    /* also does mk_atom and adds it to object list if necessary */
+    return word;
+@@ -938,7 +1058,7 @@
+ {
+    long w = read_word(), first, last, next;
+    if (w < 0) return w; /* error? */
+-   if (w == right_paren) if (rparenokay) return w; else return nil;
++   if (w == right_paren) { if (rparenokay) return w; else return nil; }
+    if (w == left_paren) { /* explicit list */
+       first = last = cons(nil,nil);
+       while ((next = read_expr(1)) != right_paren) {
+@@ -949,3 +1069,73 @@
+    } /* end if (w == left_paren) */
+    return w; /* normal atom */
+ }
++
++/* ------------------------------------------------------------------ */
++/* floating-point extension (neuromuse)                               */
++/* ------------------------------------------------------------------ */
++
++long mk_flo(double v) /* make a floating-point number */
++{
++ long a;
++ a = cons(nil,nil); /* get an empty node */
++ car[a] = cdr[a] = a; /* so that car & cdr of atom = atom */
++ atom[a] = 1;
++ flo[a] = 1;
++ fval[a] = v;
++ /* not on object list: evaluates to itself */
++ return a;
++}
++
++/* is list of characters (in reverse order) a floating-point literal ? */
++/* if so, leaves its value in fval[0] and returns 1 */
++long float_word(long x)
++{
++ char buf[64], *end;
++ long p, n = 0, digit = 0;
++ for (p = x; p != nil; p = cdr[p]) {
++    long c = car[p];
++    if (c == 0 || strchr("0123456789.eE+-",(int) c) == NULL) return 0;
++    if (c >= '0' && c <= '9') digit = 1;
++    n++;
++ }
++ if (!digit || n >= (long) sizeof(buf)) return 0;
++ buf[n] = '\0';
++ for (p = x; p != nil; p = cdr[p]) buf[--n] = (char) car[p];
++ fval[0] = strtod(buf,&end);
++ return *end == '\0';
++}
++
++/* value of reversed list of decimal digits */
++static double digits_val(long x)
++{
++ if (x == nil) return 0.0;
++ return (car[x] - '0') + 10.0 * digits_val(cdr[x]);
++}
++
++double dval(long x) /* value of number (integer or float) as a double */
++{
++ if (flo[x]) return fval[x];
++ if (numb[x]) return digits_val(pname[x]);
++ return 0.0; /* non-number is zero, as in nmb */
++}
++
++void flo_str(long x, char *buf) /* print representation of a float */
++{
++ sprintf(buf,"%.10g",fval[x]);
++ /* make sure it reads back as a float, not as an integer */
++ if (strpbrk(buf,".eEni") == NULL) strcat(buf,".0");
++}
++
++long mk_int(double v) /* make integer atom from nonnegative double */
++{
++ unsigned long long n = (unsigned long long) v;
++ long digits = nil, last = nil, d;
++ /* digits in reverse order: least significant first */
++ while (n > 0) {
++    d = cons('0' + (long)(n % 10), nil);
++    if (digits == nil) digits = d; else cdr[last] = d;
++    last = d;
++    n /= 10;
++ }
++ return mk_numb(digits);
++}
