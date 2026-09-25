@@ -1,5 +1,7 @@
 # neuromuse-ios — neuromuse sur iOS (expérimental)
 
+![iPhone 5s running perceptron.l](img/neuromuse-iphone5.png)
+
 Experimentation d'idées développées dans [neuromuse](https://github.com/FredVoisin/neuromuse)
 avec un Lisp maison natif sur iPhone 5s.
 
@@ -43,3 +45,8 @@ load float-test.l
 
 [PolyForm Noncommercial License 1.0.0](LICENSE). This does not cover
 Chaitin's `lisp.c`, which is not included.
+
+---
+
+**Frédéric Voisin** — Composer, sound artist, ethnomusicologist  
+[fredvoisin.com](https://fredvoisin.com)

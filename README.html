@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>neuromuse-ios — Réseaux de neurones sur iPhone 5s</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+      line-height: 1.6;
+      color: #2c2c2a;
+      background: #fafaf8;
+      padding: 2rem 1rem;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { color: #e8e8e6; background: #1a1a18; }
+      a { color: #7aa3ff; }
+      code { background: #2c2c2a; color: #e8e8e6; }
+      pre { background: #1a1a18; border-color: #444; color: #e8e8e6; }
+      h1, h2, h3 { color: #fff; }
+      .section { background: #2c2c2a; border-color: #444; }
+    }
+    .container { max-width: 920px; margin: 0 auto; }
+    
+    /* Hero image */
+    .hero {
+      text-align: center;
+      margin: 0 0 3rem;
+    }
+    .hero img {
+      max-width: 100%;
+      max-height: 500px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      margin: 0 auto;
+      display: block;
+    }
+    
+    h1 { 
+      font-size: 2.2rem; 
+      margin: 1.5rem 0 0.5rem; 
+      color: #1a1a18;
+    }
+    @media (prefers-color-scheme: dark) { h1 { color: #fff; } }
+    
+    .subtitle {
+      font-size: 1.1rem;
+      color: #73726c;
+      margin: 0 0 1.5rem;
+      font-style: italic;
+    }
+    @media (prefers-color-scheme: dark) { .subtitle { color: #9c9a92; } }
+    
+    h2 { 
+      font-size: 1.6rem; 
+      margin: 2rem 0 1rem; 
+      padding-bottom: 0.5rem; 
+      border-bottom: 2px solid #ddd; 
+      color: #1a1a18;
+    }
+    @media (prefers-color-scheme: dark) { h2 { border-color: #444; color: #fff; } }
+    
+    h3 { 
+      font-size: 1.1rem; 
+      margin: 1.5rem 0 0.75rem; 
+      color: #1a1a18;
+    }
+    @media (prefers-color-scheme: dark) { h3 { color: #fff; } }
+    
+    p { margin: 1rem 0; }
+    
+    code {
+      background: #f5f5f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    
+    pre {
+      background: #f5f5f0;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      border-left: 4px solid #ccc;
+      margin: 1rem 0;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    @media (prefers-color-scheme: dark) { 
+      pre { background: #2c2c2a; border-color: #555; }
+    }
+    pre code { background: none; padding: 0; }
+    
+    ul, ol { margin: 1rem 0 1rem 2rem; }
+    li { margin: 0.5rem 0; }
+    
+    a {
+      color: #185fa5;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    @media (prefers-color-scheme: dark) { a { color: #7aa3ff; } }
+    
+    table {
+      border-collapse: collapse;
+      margin: 1rem 0;
+      width: 100%;
+      font-size: 0.95rem;
+    }
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    @media (prefers-color-scheme: dark) { th, td { border-color: #444; } }
+    th { 
+      background: #f5f5f0; 
+      font-weight: 600; 
+      color: #1a1a18;
+    }
+    @media (prefers-color-scheme: dark) { th { background: #2c2c2a; color: #fff; } }
+    
+    .section {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      border: 1px solid #ddd;
+    }
+    @media (prefers-color-scheme: dark) { 
+      .section { background: #2c2c2a; border-color: #444; }
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-right: 0.5rem;
+    }
+    .status-done { background: #e6f2e6; color: #0d5f0d; }
+    .status-draft { background: #fff4e6; color: #6d4c00; }
+    .status-todo { background: #ffe6e6; color: #6d0000; }
+    @media (prefers-color-scheme: dark) {
+      .status-done { background: #1a3a1a; color: #7fd47f; }
+      .status-draft { background: #3a2e1a; color: #ffc966; }
+      .status-todo { background: #3a1a1a; color: #ff9999; }
+    }
+    
+    footer {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid #ddd;
+      color: #73726c;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    @media (prefers-color-scheme: dark) { 
+      footer { border-color: #444; color: #9c9a92; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- Hero Image -->
+    <div class="hero">
+      <img src="img/neuromuse-iphone5.png" alt="iPhone 5s running perceptron.l — Lisp interpreter output">
+    </div>
+
+    <h1>neuromuse-ios</h1>
+    <p class="subtitle">Expérimentation d'idées développées dans <a href="https://github.com/FredVoisin/neuromuse">neuromuse</a> avec un Lisp maison natif sur iPhone 5s.</p>
+
+    <p>L'interpréteur est fondé sur le <strong><code>lisp.c</code> de Gregory J. Chaitin</strong>, non inclu ici.
+    Ce dépôt contient seulement les modifications de l'interpréteur et les exemples :</p>
+
+    <ul>
+      <li><code>chaitin-lisp/neuromuse.patch</code> — avec <code>load</code> et nombres décimaux (<code>/ exp log sqrt floor float random seed</code>) nécessaires ajoutées à <code>lisp.c</code></li>
+      <li><code>chaitin-lisp/Makefile</code> — applique le patch et compile avec le SDK Theos</li>
+      <li><code>examples/*.l</code> — exemple dans le dialecte Lisp de Chaitin (<code>.l</code>, not Common Lisp)</li>
+    </ul>
+
+    <h2>Build</h2>
+    <pre><code>cd chaitin-lisp
+cp /path/to/chaitin/lisp.c lisp.orig.c
+make</code></pre>
+
+    <h2>Run</h2>
+    <pre><code>cd examples
+../chaitin-lisp/lisp
+load float-test.l</code></pre>
+
+    <h2>Documentation</h2>
+    <ul>
+      <li><a href="doc/chaitin-lisp.md">doc/chaitin-lisp.md</a> — build, problems solved, extensions, pitfalls</li>
+      <li><a href="doc/lisp-code.md">doc/lisp-code.md</a> — Lisp code and results</li>
+    </ul>
+
+    <h2>Status</h2>
+    <table>
+      <tr>
+        <th>Composant</th>
+        <th>Statut</th>
+      </tr>
+      <tr>
+        <td><code>load</code> et floating-point (tested iPhone 5s)</td>
+        <td><span class="status-badge status-done">✓ Done</span></td>
+      </tr>
+      <tr>
+        <td>perceptron (<code>examples/perceptron.l</code>, port in progress)</td>
+        <td><span class="status-badge status-done">✓ Done</span></td>
+      </tr>
+      <tr>
+        <td>SOM (<code>examples/som.l</code>, draft, tested on Linux only)</td>
+        <td><span class="status-badge status-draft">🚧 Draft</span></td>
+      </tr>
+      <tr>
+        <td>perceptron → WAV playback</td>
+        <td><span class="status-badge status-todo">📋 Planned</span></td>
+      </tr>
+    </table>
+
+    <div class="section">
+      <h3>Highlights</h3>
+      <ul>
+        <li><strong>Pure lambda-calculus</strong> — no mutation, all recursive</li>
+        <li><strong>Perceptron XOR</strong> — converges in 7 epochs on iPhone 5s</li>
+        <li><strong>~100 lines of code</strong> for float tests + perceptron + SOM draft</li>
+        <li><strong>Minimal footprint</strong> — lisp binary ~90KB, interpreter 1M node budget</li>
+      </ul>
+    </div>
+
+    <h2>License</h2>
+    <p><a href="LICENSE">PolyForm Noncommercial License 1.0.0</a>. This does not cover Chaitin's <code>lisp.c</code>, which is not included.</p>
+
+    <footer>
+      <p>© Frédéric Voisin — Composer, sound artist, ethnomusicologist<br>
+      <a href="https://fredvoisin.com">fredvoisin.com</a></p>
+    </footer>
+
+  </div>
+</body>
+</html>
