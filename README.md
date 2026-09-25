@@ -1,10 +1,10 @@
 # neuromuse-ios — Chaitin's Lisp on a iPhone 5s
 
-Experimentations des idées développées dans [neuromuse](https://github.com/FredVoisin/neuromuse)
-avec Lisp natif iPhone 5s (checkra1n, arm64).
+Experimentation d'idées développées dans [neuromuse](https://github.com/FredVoisin/neuromuse)
+avec un Lisp maison natif iPhone 5s (checkra1n, arm64).
 
-L'interpreteurr est le **`lisp.c` de Gregory J. Chaitin**, non inclu ici.
-Ce dépôt contient seulement les modifications de l'interpréteur et et les exemples:
+L'interpréteur est fondé sur le **`lisp.c` de Gregory J. Chaitin**, non inclu ici.
+Ce dépôt contient seulement les modifications de l'interpréteur et les exemples:
 
 - `chaitin-lisp/neuromuse.patch` — avec `load` et nombres décimaux
   (`/ exp log sqrt floor float random seed`) nécessaires ajoutées à `lisp.c`
