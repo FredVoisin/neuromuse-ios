@@ -9,8 +9,8 @@ neuromuse-ios | Chaitin's lisp.c + extensions flottants | iPhone 5s, iOS 12.5.x
 ## Table des matières
 
 0. [Vue d'ensemble](#vue-densemble)
-1. [Contexte historique]
-2. [Détails du perceptron](#code-du-perceptron)
+1. [Contexte historique](#contexte)
+2. [Code et observation du perceptron](#code-du-perceptron)
 3. [Datasets](#datasets)
 4. [Résultats et analyse](#résultats-et-analyse)
 5. [Pièges et solutions](#pièges-et-solutions)
@@ -33,19 +33,18 @@ tel que décrit et interprété dans [../examples/perceptronxor-noise.l](../exam
 ## Contexte historique
 
 - 1958 : Frank Rosenblatt invente le perceptron et démontre son théorème de convergence
-- 1969 : Minsky & Papert publient "Perceptrons: An Introduction to Computational Geometry" qui prouvait mathématiquement que le
-         perceptron simple ne peut pas résoudre des problèmes non linéairement séparable — dont XOR est l'exemple canonique
+- 1969 : Minsky & Papert prouvent mathématiquement que le perceptron ne peut pas résoudre des problèmes non linéairement séparable — dont XOR est l'exemple canonique ; début de l'hiver de l'IA
 - 1974 : Paul Werbos décrit la backpropagation dans sa thèse (ignorée) "Beyond Regression: New Tools for Prediction and Analysis in the Behavioral Sciences"
 - 1980 : Kunihiko Fukushima, neocognitron (apprentissage par couches)
 - 1982 : John Hopfield	Réseaux récurrents
 - 1986 : Rumelhart, Hinton, Williams - rédécouverte de la backpropagation + impact (fin de l'hiver)
 - 1989 : Yann LeCun et al., LeNet (CNN sur MNIST)
 
-Ainsi un perceptron monocouche ne peut pas calculer XOR car cette fonction n'est pas linéairement séparable dans l'espace d'entrée brut.
-La solution d'augmenter les dimensions, bien qu'envisagée (les "features engineering", dans le cas présent en ajoutant une entrée x1 * x2,
-ou empiler des perceptrons ce qui fait des MLP) a été ignorée (AI Winter) jusque 1986 (Rumelhart, Hinton & Williams, "Learning representations by back-propagating errors").
+Ainsi un perceptron monocouche ne peut pas calculer XOR car cette fonction n'est pas linéairement séparable dans l'espace d'entrée brut (Minsky & Papert :"Perceptrons: An Introduction to Computational Geometry").
 
-## Détails du code du perceptron
+La solution d'augmenter les dimensions, bien qu'envisagée (les "features engineering", ici en ajoutant une entrée x1 * x2, ou d'empiler des perceptrons ce qui fait des MLP) a été ignorée jusque 1986 (Rumelhart, Hinton & Williams, "Learning representations by back-propagating errors").
+
+## Code et observation du perceptron
 
 Toutes les fonctions sont **immutables** — aucune mutation, tout récursif et fonctionnel.
 
