@@ -1,6 +1,6 @@
-# Perceptron XOR sur iPhone 5s
+# Etude d'un perceptron XOR sur iPhone 5s
 
-**Tutorial complet d'apprentissage du perceptron Widrow-Hoff avec données bruitées**
+**Tutorial complet d'apprentissage du perceptron Widrow-Hoff avec données bruitées, en Lisp**
 
 neuromuse-ios | Chaitin's lisp.c + extensions flottants | iPhone 5s, iOS 12.5.x
 
@@ -397,9 +397,11 @@ EOF
 # Exécuter et sauvegarder résultats
 lisp < perceptronxor-noise.l | tee perceptronxor-noise.r
 
-# Voir résultats
+# Voir les résultats
 cat perceptronxor-noise.r
 ```
+
+Un exemple de [résultat sur iPhone5](../examples/perceptronxor-noise.r)
 
 ---
 
