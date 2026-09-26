@@ -1,7 +1,7 @@
 # neuromuse-ios — neuromuse sur iOS (expérimental)
 
 <div align="center">
-  <img src="img/neuromuse-iphone5.png" alt="iPhone 5s running perceptron.l" width="350">
+  <img src="img/neuromuse-iphone5.png" alt="iPhone 5s running perceptron.l" width="300">
 </div>
 
 Experimentation d'idées développées dans [neuromuse](https://github.com/FredVoisin/neuromuse)
@@ -34,14 +34,18 @@ load float-test.l
 ## Documentation
 
 - [doc/chaitin-lisp.md](doc/chaitin-lisp.md) — build, problems solved, extensions, pitfalls
-- [doc/lisp-code.md](doc/lisp-code.md) — Lisp code and results
+- [doc/lisp-code.md](doc/lisp-code.md) — tests basics code Lisp et resultats
 
-## Status
+## Statut (iPhone5s)
 
-- [x] `load` and floating-point extension (tested on iPhone 5s)
-- [x] perceptron (`examples/perceptron.l`, port in progress)
+- [x] `load` and floating-point extension
+- [x] perceptron (`examples/perceptron.l`
 - [ ] SOM (`examples/som.l`, draft, tested on Linux only)
 - [ ] perceptron → WAV playback
+
+## Discussions
+
+- [doc/perceptron.md](doc/perceptron.md) - A propos de robustesse du perceptron
 
 ## License
 
